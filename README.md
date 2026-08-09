@@ -1,9 +1,5 @@
 # Project Folder Template
 
-嵌入式工程目录结构模板
-
-> 感觉这个文件结构比较贴合个人和公司里边的实际开发
-
 目录结构介绍
 
 ```
@@ -55,6 +51,6 @@ find ./ -type d -empty -not -path "./.git/*" -exec touch {}/.gitkeep \;
 
 
 参考
-
+- [学习MCU+RTOS实战项目V2]
 - [搞嵌入式，文件很多很乱？当始一个新的嵌入式项目，必做的准备工作--工程文件夹归档](https://www.bilibili.com/video/BV1E1421i7wJ/)
 
