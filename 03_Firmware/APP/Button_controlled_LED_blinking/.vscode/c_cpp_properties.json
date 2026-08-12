@@ -1,0 +1,26 @@
+{
+    "configurations": [
+        {
+            "name": "Keil ARMCC5",
+            "compilerPath": "D:/Keil_MDK/ARM/ARMCC/bin/armcc.exe",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "D:/Keil_MDK/ARM/ARMCC/include",
+                "${workspaceFolder}/Core/Inc",
+                "${workspaceFolder}/Drivers/STM32F1xx_HAL_Driver/Inc",
+                "${workspaceFolder}/Drivers/STM32F1xx_HAL_Driver/Inc/Legacy",
+                "${workspaceFolder}/Drivers/CMSIS/Device/ST/STM32F1xx/Include",
+                "${workspaceFolder}/Drivers/CMSIS/Include",
+                "${workspaceFolder}/Bsp/led/driver/inc"
+            ],
+            "defines": [
+                "USE_HAL_DRIVER",
+                "STM32F103xB",
+                "__CC_ARM"
+            ],
+            "cStandard": "c99",
+            "intelliSenseMode": "windows-gcc-arm"
+        }
+    ],
+    "version": 4
+}
