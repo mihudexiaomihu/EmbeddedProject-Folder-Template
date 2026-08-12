@@ -18,6 +18,7 @@
 "button_controlled_led_blinking\stm32f1xx_hal_flash_ex.o"
 "button_controlled_led_blinking\stm32f1xx_hal_exti.o"
 "button_controlled_led_blinking\system_stm32f1xx.o"
+"button_controlled_led_blinking\bsp_led_driver.o"
 --strict --scatter "Button_controlled_LED_blinking\Button_controlled_LED_blinking.sct"
 --summary_stderr --info summarysizes --map --load_addr_map_info --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
