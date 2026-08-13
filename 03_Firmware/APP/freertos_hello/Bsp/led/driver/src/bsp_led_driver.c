@@ -64,11 +64,11 @@ led_status_t led_driver_init(bsp_led_driver_t *self)
  */
 led_status_t led_driver_inst(
                                       bsp_led_driver_t              *self,
-                                      led_operations_t   const   *led_ops,
+                                      led_operations_t      *led_ops,
 #ifdef OS_SUPPPORTING                                
-                                      os_delay_t         const  *os_delay,  
+                                      os_delay_t           *os_delay,  
 #endif//OS_SUPPPORTING
-								      time_base_ms_t     const *time_base   )   
+								      time_base_ms_t      *time_base   )   
 {
     led_status_t ret = LED_OK;
 	DEBUG_OUT("led inst start\r\n");
