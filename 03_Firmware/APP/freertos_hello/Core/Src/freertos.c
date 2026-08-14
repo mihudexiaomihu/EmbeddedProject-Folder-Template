@@ -68,6 +68,14 @@ const osThreadAttr_t key_Task_attributes = {
   .priority = (osPriority_t) osPriorityNormal,
 };
 
+void led_task_func(void *argument);
+
+osThreadId_t led_TaskHandle;
+const osThreadAttr_t led_Task_attributes = {
+  .name = "led_Task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -85,33 +93,41 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
-  /* add mutexes, ... */
+    /* add mutexes, ... */
   /* USER CODE END RTOS_MUTEX */
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
-  /* add semaphores, ... */
+    /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
-  /* start timers, add new ones, ... */
+    /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
-  /* add queues, ... */
-	g_key_value_queue = xQueueCreate(2,sizeof(key_press_status_t));
-	
+    /* add queues, ... */
+    g_key_value_queue = xQueueCreate(2,sizeof(key_press_status_t));
+
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
   /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  defaultTaskHandle = osThreadNew(  StartDefaultTask, NULL, 
+                                    &defaultTask_attributes );
+
   /* USER CODE BEGIN RTOS_THREADS */
-  /* add threads, ... */
-  key_TaskHandle = osThreadNew(key_task_func, NULL, &key_Task_attributes);  
+    /* add threads, ... */
+    key_TaskHandle = osThreadNew(   key_task_func, 
+                                    NULL,
+                                    &key_Task_attributes    );  
+
+    led_TaskHandle = osThreadNew(   led_task_func, 
+                                    NULL, 
+                                    &led_Task_attributes);  
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
-  /* add events, ... */
+    /* add events, ... */
   /* USER CODE END RTOS_EVENTS */
 
 }
@@ -135,7 +151,7 @@ void StartDefaultTask(void *argument)
   /* USER CODE END StartDefaultTask */
 }
 
-/* Private application code --------------------------------------------------*/
+/* Private application code -------------------------------------------------*/
 /* USER CODE BEGIN Application */
 
 /**
@@ -185,9 +201,51 @@ void key_task_func(void *argument)
         }
 
         /* Set the task polling period to 100 ms -------------------------- */
-        osDelay(100);
+        osDelay(10);
     }
 }
+
+void led_task_func(void *argument)
+{
+    /* Task argument and local state -------------------------------------- */
+    (void)argument;
+    key_press_status_t key_value = KEY_UNPRESSED;
+
+    for(;;)
+    {
+        printf("led_task_func \r\n");
+        if(xQueueReceive(g_key_value_queue,&key_value,0))
+        {
+            if( KEY_PRESSED == key_value )
+            {
+                printf("Key_pressed \r\n");
+
+                HAL_GPIO_TogglePin( LED_GPIO_PIN_GPIO_Port,
+                                    LED_GPIO_PIN_Pin);
+
+                printf("led_gpio_TogglePin \r\n");
+            }
+
+        }
+        osDelay(10);
+
+    }
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* USER CODE END Application */
 

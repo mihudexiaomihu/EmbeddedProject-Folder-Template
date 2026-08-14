@@ -49,14 +49,16 @@ typedef enum
 /***********************************Defines**********************************/
 
 /**
- * @brief Poll the key input until it is pressed or the poll limit expires.
+ * @brief Detect one event for each active-low key press.
  *
  * @param[out] key_value Destination for the sampled logical key state.
  *
- * @retval KEY_OK The key was detected as pressed.
- * @retval KEY_ERROR_TIMEOUT The key remained unpressed for the polling window.
+ * @retval KEY_OK A new key press was detected.
+ * @retval KEY_ERROR_TIMEOUT No new key press was detected.
+ * @retval KEY_ERROR_PARAMETER key_value is NULL.
  *
- * @note The caller must provide a valid, writable pointer.
+ * @note Holding the key does not produce repeated press events. The key must
+ *       be released before another press can be detected.
  */
 key_status_t key_scan(key_press_status_t *key_value);
 
