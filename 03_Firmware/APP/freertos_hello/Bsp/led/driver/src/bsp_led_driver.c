@@ -1,22 +1,28 @@
-/**
-  *************************************************************************************
-  * @file        bsp_led_driver.c
-  * @brief       Construction and initialization of the board-level LED driver.
-  * 
-  * This file binds the low-level LED operations, RTOS delay, and MCU time base
-  * supplied by the application to an LED driver object and establishes its
-  * default state. Hardware operations are performed through callbacks, allowing
-  * this module to be reused with different MCUs, GPIOs, and operating systems.
-  *
-  * @author     wangzihang  
-  * @date       2024-10-18
-  * @version         1.0.0
-  * 
-  * @note        This module does not allocate or release memory for the driver
-  *              object or its dependency interfaces.
-  * @warning     Construct the object with led_driver_inst() before using it.
-  *************************************************************************************
-  */
+ /*************************************************************************************?
+ * Copyright (C) 2024 EternalChip, Inc.(Gmbh) or its affiliates.
+ * 
+ * All Rights Reserved.
+ * 
+ * @file bsp_led_driver.c
+ * 
+ * @par dependencies 
+ * - ec_bsp_aht21_reg.h
+ * - stdio.h?
+ * - stdint.h?
+ * 
+ * @author wzh | R&D Dept. | EternalChip
+ * 
+ * @brief Provide the HAL APIs of key and corresponding opetions.
+ * 
+ * Processing flow:
+ * 
+ * call directly.
+ *
+ * @version V1.0 2026-8-14
+ 
+ * @note 1 tab == 4 spaces!
+ * 
+ **************************************************************************************/
 
 /***********************************Include********************************************/
 #include "bsp_led_driver.h"

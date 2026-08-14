@@ -18,38 +18,29 @@
  * ​
  * call directly.​
  * ​
- * @version V1.0 2023-12-03​
+ * @version V1.0 2026-08-13​
  *​
  * @note 1 tab == 4 spaces!​
 * ​
  **************************************************************************************/
-/***********************************Include********************************************/
-#include "stm32f4xx_hal.h"
-#include <stdio.h>
-#include <stdint.h>
-/***********************************Include********************************************/
 
-/***********************************Defines********************************************/
+#include "bsp_key.h"
 
-typedef enum
-{	
-	 KEY_OK                  =   0,      /* Indicates that the LED operation succeeded.                      	*/ 	
-	 KEY_ERROR               =   1,      /* Indicates a general error occurred during the LED operation.     	*/ 	 
-	 KEY_ERROR_TIMEOUT       =   2,      /* Indicates that the LED operation timed out.                      	*/ 	 
-	 KEY_ERROR_RESOURCES     =   3,      /* Indicates insufficient resources to complete the LED operation.   	*/	 
-	 KEY_ERROR_PARAMETER     =   4,      /* Indicates that an invalid parameter was passed.                     	*/
-	 KEY_ERROR_NOMEMORY      =   5,      /* Indicates insufficient memory to complete the LED operation.        	*/
-	 KEY_ERROR_ISR           =   6,      /* Indicates an error occurred in the ISR (Interrupt Service Routine). 	*/ 
-	 KEY_ERROR_BUSY          =   7,      /* Indicates the LED is busy and cannot execute the operation.         	*/
-	 KEY_ERROR_RESERVED      =   0xFF,   /* Reserved error code for future expansion.                           	*/
-}key_status_t;
-
-
-/***********************************Defines********************************************/
-
-
-
-
-
-
-/***********************************Declaring******************************************/
+key_status_t key_scan(key_press_status_t *key_value)
+{
+	uint32_t timeout_count = 0;
+	key_press_status_t key_press_value = KEY_UNPRESSED;
+	
+	while(timeout_count < 10000)
+	{
+		if( HAL_GPIO_ReadPin(KEY_GPIO_PIN_GPIO_Port,KEY_GPIO_PIN_Pin) == GPIO_PIN_RESET)
+		{
+			key_press_value = KEY_PRESSED;
+			*key_value = key_press_value;
+			return KEY_OK;
+		}
+		timeout_count ++;
+	}
+	*key_value = key_press_value;
+	return KEY_ERROR_TIMEOUT;
+}

@@ -1,2 +1,35 @@
 # 忽略
 
+# ===== Keil 编译输出 =====
+Objects/
+Listings/
+
+# 编译中间文件
+*.o
+*.obj
+*.d
+*.crf
+*.dep
+*.lnp
+*.htm
+*.map
+
+# 编译生成文件
+*.axf
+*.elf
+*.hex
+*.bin
+
+# Keil 用户个人配置
+*.uvguix.*
+*.uvopt
+*.uvoptx
+
+# 调试/跟踪产生的文件
+*.scvd
+
+# 临时/备份文件
+*.bak
+*.tmp
+*.log
+*~

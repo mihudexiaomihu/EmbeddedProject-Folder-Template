@@ -25,7 +25,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bsp_key.h"
+#include "queue.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -35,6 +36,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+	QueueHandle_t g_key_value_queue;
 
 /* USER CODE END PD */
 
@@ -57,6 +59,14 @@ const osThreadAttr_t defaultTask_attributes = {
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+void key_task_func(void *argument);
+
+osThreadId_t key_TaskHandle;
+const osThreadAttr_t key_Task_attributes = {
+  .name = "key_Task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 
 /* USER CODE END FunctionPrototypes */
 
@@ -88,14 +98,16 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
+	g_key_value_queue = xQueueCreate(2,sizeof(key_press_status_t));
+	
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
   /* creation of defaultTask */
   defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
-
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  key_TaskHandle = osThreadNew(key_task_func, NULL, &key_Task_attributes);  
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -125,6 +137,44 @@ void StartDefaultTask(void *argument)
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
+
+/**
+  * @brief  key_task_func
+  *         
+  * @note   
+  *         
+  * @param  
+  * @retval 
+  */
+void key_task_func(void *argument)
+{
+	(void)argument;
+	
+	key_status_t		ret			=	KEY_OK;
+	key_press_status_t	key_value	=	KEY_UNPRESSED;
+	
+	for(;;)
+	{
+		printf("key_task_func \r\n");
+		
+		ret = key_scan(&key_value);
+		
+		if( KEY_OK == ret )
+		{
+			if(KEY_PRESSED == key_value)
+			{
+				printf("Key_Pressed \r\n");
+				xQueueSend(g_key_value_queue,&key_value,0);
+			}
+		}
+		else
+		{
+			printf("Key_Unpressed \r\n");
+		}
+		
+		osDelay(100);
+	}
+}
 
 /* USER CODE END Application */
 
