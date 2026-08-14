@@ -1,68 +1,63 @@
- /****************************************************************************​
- * Copyright (C) 2024 EternalChip, Inc.(Gmbh) or its affiliates.​
- * ​
- * All Rights Reserved.​
- * ​
- * @file key.h​
- * ​
- * @par dependencies ​
- * - stdio.h​
- * - stdint.h​
- * - stm32f4xx_hal.h​
- * ​
- * @author Jack | R&D Dept. | EternalChip 立芯嵌入式​
- * ​
- * @brief Provide the HAL APIs of ley and corresponding opetions.​
- * ​
-* Processing flow:​
- * ​
- * call directly.​
- * ​
- * @version V1.0 2026-08-13
- *​
- * @note 1 tab == 4 spaces!​
-* ​
- *****************************************************************************/
+/**
+ * @file bsp_key.h
+ * @brief Public types and interface for the board key driver.
+ *
+ * The driver polls the key GPIO and reports whether the key is pressed.
+ * The GPIO port, pin, and active level are provided by the CubeMX-generated
+ * board configuration.
+ *
+ * @author wzh
+ * @version 1.0
+ * @date 2026-08-13
+ */
 
-
-#ifndef __KEY_H__
-#define __KEY_H__
-
-/***********************************Include********************************************/
-#include "stm32f4xx_hal.h"
-#include <stdio.h>
+#ifndef __BSP_KEY_H__
+#define __BSP_KEY_H__
+/***********************************Include**********************************/
 #include <stdint.h>
 #include "gpio.h"
-/***********************************Include********************************************/
-
-/***********************************Defines********************************************/
-typedef enum
-{	
-	 KEY_OK                  =	0,      /* Indicates that the LED operation succeeded.                      	*/ 	
-	 KEY_ERROR               =	1,      /* Indicates a general error occurred during the LED operation.     	*/ 	 
-	 KEY_ERROR_TIMEOUT       =	2,      /* Indicates that the LED operation timed out.                      	*/ 	 
-	 KEY_ERROR_RESOURCES     =	3,      /* Indicates insufficient resources to complete the LED operation.   	*/	 
-	 KEY_ERROR_PARAMETER     =	4,      /* Indicates that an invalid parameter was passed.                     	*/
-	 KEY_ERROR_NOMEMORY      =	5,      /* Indicates insufficient memory to complete the LED operation.        	*/
-	 KEY_ERROR_ISR           =	6,      /* Indicates an error occurred in the ISR (Interrupt Service Routine). 	*/ 
-	 KEY_ERROR_BUSY          =	7,      /* Indicates the LED is busy and cannot execute the operation.         	*/
-	 KEY_ERROR_RESERVED      =	0xFF,   /* Reserved error code for future expansion.                           	*/
-}key_status_t;
-
-
+#include "stm32f4xx_hal.h"
+/***********************************Include**********************************/
+/***********************************Defines**********************************/
+/**
+ * @brief Return codes used by the key driver.
+ */
 typedef enum
 {
-	KEY_PRESSED 			 =	0,		/* Reserved error code for future expansion.                           	*/
-	KEY_UNPRESSED 			 =	1		/* Reserved error code for future expansion.                           	*/
-}key_press_status_t;
-/***********************************Defines********************************************/
+    KEY_OK              = 0,    /**< Operation completed successfully.      */
+    KEY_ERROR           = 1,    /**< An unspecified error occurred.         */
+    KEY_ERROR_TIMEOUT   = 2,    /**< No press was found before timeout.     */
+    KEY_ERROR_RESOURCES = 3,    /**< Required resources are unavailable.    */
+    KEY_ERROR_PARAMETER = 4,    /**< An input parameter is invalid.         */
+    KEY_ERROR_NOMEMORY  = 5,    /**< Insufficient memory.                   */
+    KEY_ERROR_ISR       = 6,    /**< Operation failed in interrupt context. */
+    KEY_ERROR_BUSY      = 7,    /**< The driver is busy.                    */
+    KEY_ERROR_RESERVED  = 0xFF  /**< Reserved for future use.               */
+} key_status_t;
 
-/***********************************Declaring******************************************/
+/**
+ * @brief Logical key states.
+ *
+ * The key input is active low: a low GPIO level maps to KEY_PRESSED.
+ */
+typedef enum
+{
+    KEY_PRESSED         = 0,    /**< The key input is active.               */
+    KEY_UNPRESSED       = 1     /**< The key input is inactive.             */
+} key_press_status_t;
+
+/***********************************Defines**********************************/
+
+/**
+ * @brief Poll the key input until it is pressed or the poll limit expires.
+ *
+ * @param[out] key_value Destination for the sampled logical key state.
+ *
+ * @retval KEY_OK The key was detected as pressed.
+ * @retval KEY_ERROR_TIMEOUT The key remained unpressed for the polling window.
+ *
+ * @note The caller must provide a valid, writable pointer.
+ */
 key_status_t key_scan(key_press_status_t *key_value);
 
-
-/***********************************Declaring******************************************/
-
-
-#endif // __KEY_H__
-
+#endif /* __BSP_KEY_H__ */
