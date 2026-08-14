@@ -63,12 +63,12 @@ led_status_t led_driver_init(bsp_led_driver_t *self)
  * parameter and return-value contract.
  */
 led_status_t led_driver_inst(
-                                      bsp_led_driver_t              *self,
-                                      led_operations_t   const   *led_ops,
+                                      bsp_led_driver_t			*self,
+                                      led_operations_t      *led_ops,
 #ifdef OS_SUPPPORTING                                
-                                      os_delay_t         const  *os_delay,  
+                                      os_delay_t						*os_delay,  
 #endif//OS_SUPPPORTING
-								      time_base_ms_t     const *time_base   )   
+																			time_base_ms_t				*time_base  )   
 {
     led_status_t ret = LED_OK;
 	DEBUG_OUT("led inst start\r\n");
@@ -98,13 +98,13 @@ led_status_t led_driver_inst(
         DEBUG_OUT("led_inst_start\r\n");
 #endif 
 /****************************Bind dependencies and reset defaults*******/	
-	self->p_led_opes_inst = led_ops;
-    self->os_delay_t = os_delay;
-    self->p_time_base_ms = time_base;
+		self->p_led_opes_inst 	= 	led_ops;
+    self->os_delay_t 				= 	os_delay;
+    self->p_time_base_ms 		= 	time_base;
 
     self->period_time_ms = 0;
-	self->blink_times = 0;
-	self->proportion_on_of = PROPORTION_x_x;
+		self->blink_times = 0;
+		self->proportion_on_of = PROPORTION_x_x;
 	
     ret = led_driver_init(self);
 

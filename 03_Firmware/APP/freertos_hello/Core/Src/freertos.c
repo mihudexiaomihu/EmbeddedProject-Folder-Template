@@ -47,12 +47,24 @@
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+/* Definitions for led_task_func */
+osThreadId_t led_task_funcHandle;
+const osThreadAttr_t led_task_func_attributes = {
+  .name = "led_task_func",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for ked_task_func */
+osThreadId_t ked_task_funcHandle;
+const osThreadAttr_t ked_task_func_attributes = {
+  .name = "ked_task_func",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
+};
+/* Definitions for key_value */
+osMessageQueueId_t key_valueHandle;
+const osMessageQueueAttr_t key_value_attributes = {
+  .name = "key_value"
 };
 
 /* Private function prototypes -----------------------------------------------*/
@@ -60,7 +72,8 @@ const osThreadAttr_t defaultTask_attributes = {
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void *argument);
+void led_task(void *argument);
+void key_task(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -86,13 +99,20 @@ void MX_FREERTOS_Init(void) {
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
 
+  /* Create the queue(s) */
+  /* creation of key_value */
+  key_valueHandle = osMessageQueueNew (1, sizeof(uint16_t), &key_value_attributes);
+
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of led_task_func */
+  led_task_funcHandle = osThreadNew(led_task, NULL, &led_task_func_attributes);
+
+  /* creation of ked_task_func */
+  ked_task_funcHandle = osThreadNew(key_task, NULL, &ked_task_func_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -104,23 +124,40 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_led_task */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the led_task_func thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
+/* USER CODE END Header_led_task */
+void led_task(void *argument)
 {
-  /* USER CODE BEGIN StartDefaultTask */
+  /* USER CODE BEGIN led_task */
   /* Infinite loop */
   for(;;)
   {
-	printf("hello world \r\n");
-    osDelay(1000);
+    osDelay(1);
   }
-  /* USER CODE END StartDefaultTask */
+  /* USER CODE END led_task */
+}
+
+/* USER CODE BEGIN Header_key_task */
+/**
+* @brief Function implementing the ked_task_func thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_key_task */
+void key_task(void *argument)
+{
+  /* USER CODE BEGIN key_task */
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END key_task */
 }
 
 /* Private application code --------------------------------------------------*/
