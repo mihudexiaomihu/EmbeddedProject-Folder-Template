@@ -139,41 +139,54 @@ void StartDefaultTask(void *argument)
 /* USER CODE BEGIN Application */
 
 /**
-  * @brief  key_task_func
-  *         
-  * @note   
-  *         
-  * @param  
-  * @retval 
-  */
+ * @brief Periodically scan the key and publish press events.
+ *
+ * This FreeRTOS task polls the board key every 100 ms. When key_scan()
+ * reports an active key, the task sends KEY_PRESSED to the shared key-value
+ * queue without waiting for free queue space. Diagnostic messages are sent
+ * through the printf UART redirection.
+ *
+ * @param[in] argument Task argument supplied by osThreadNew(). It is unused.
+ *
+ * @return This task never returns.
+ *
+ * @note If the queue is full, xQueueSend() fails immediately and the event is
+ *       discarded because the return value is not currently checked.
+ */
 void key_task_func(void *argument)
 {
-	(void)argument;
-	
-	key_status_t		ret			=	KEY_OK;
-	key_press_status_t	key_value	=	KEY_UNPRESSED;
-	
-	for(;;)
-	{
-		printf("key_task_func \r\n");
-		
-		ret = key_scan(&key_value);
-		
-		if( KEY_OK == ret )
-		{
-			if(KEY_PRESSED == key_value)
-			{
-				printf("Key_Pressed \r\n");
-				xQueueSend(g_key_value_queue,&key_value,0);
-			}
-		}
-		else
-		{
-			printf("Key_Unpressed \r\n");
-		}
-		
-		osDelay(100);
-	}
+    /* Task argument and local state -------------------------------------- */
+    (void)argument;
+
+    key_status_t ret = KEY_OK;
+    key_press_status_t key_value = KEY_UNPRESSED;
+
+    /* Periodic key processing loop --------------------------------------- */
+    for (;;)
+    {
+        printf("key_task_func \r\n");
+
+        /* Read the current key state ------------------------------------- */
+        ret = key_scan(&key_value);
+
+        /* Publish a detected key-press event ----------------------------- */
+        if (KEY_OK == ret)
+        {
+            if (KEY_PRESSED == key_value)
+            {
+                printf("Key_Pressed \r\n");
+                xQueueSend(g_key_value_queue, &key_value, 0);
+            }
+        }
+        else
+        {
+            /* A timeout means no key press was detected during this scan. */
+            printf("Key_Unpressed \r\n");
+        }
+
+        /* Set the task polling period to 100 ms -------------------------- */
+        osDelay(100);
+    }
 }
 
 /* USER CODE END Application */
