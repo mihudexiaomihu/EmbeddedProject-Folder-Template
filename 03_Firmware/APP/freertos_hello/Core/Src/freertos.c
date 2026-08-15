@@ -25,7 +25,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "queue.h"
+#include "bsp_key.h"
+#include "bsp_led.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,7 +103,9 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the queue(s) */
   /* creation of key_value */
-  key_valueHandle = osMessageQueueNew (1, sizeof(uint16_t), &key_value_attributes);
+  key_valueHandle = osMessageQueueNew (   1                     , 
+                                          sizeof(key_function_t),
+                                          &key_value_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -109,10 +113,14 @@ void MX_FREERTOS_Init(void) {
 
   /* Create the thread(s) */
   /* creation of led_task_func */
-  led_task_funcHandle = osThreadNew(led_task, NULL, &led_task_func_attributes);
+  led_task_funcHandle = osThreadNew(  led_task                  , 
+                                      NULL                      , 
+                                      &led_task_func_attributes);
 
   /* creation of ked_task_func */
-  ked_task_funcHandle = osThreadNew(key_task, NULL, &ked_task_func_attributes);
+  ked_task_funcHandle = osThreadNew(  key_task                  , 
+                                      NULL                      , 
+                                      &ked_task_func_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -126,18 +134,57 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_led_task */
 /**
-  * @brief  Function implementing the led_task_func thread.
-  * @param  argument: Not used
-  * @retval None
-  */
+ * @brief Process key events and control the LED.
+ *
+ * A short press toggles the LED. A long press starts three blinks.
+ *
+ * @param[in] argument Unused task argument.
+ * @return This task never returns.
+ */
 /* USER CODE END Header_led_task */
 void led_task(void *argument)
 {
   /* USER CODE BEGIN led_task */
+    key_function_t key_value = KEY_NOT_PRESSED;
+    led_status_t ret = LED_OK;
+    static uint8_t blink_enable = 0;
+
+    (void)argument;
+
   /* Infinite loop */
-  for(;;)
+  for (;;)
   {
-    osDelay(1);
+    /* Read and process one queued key event ------------------------------ */
+    if (pdTRUE == xQueueReceive(key_valueHandle, &key_value, 0))
+    {
+        if (KEY_SHORT_PRESSED == key_value)
+        {
+            printf("data is key short \r\n");
+
+            if (0U == blink_enable)
+            {
+                led_toggle();
+            }
+        }
+        else if (KEY_LONG_PRESSED == key_value)
+        {
+            blink_enable = 1U;
+            printf("data is key long \r\n");
+        }
+    }
+
+    /* Continue the active non-blocking blink sequence -------------------- */
+    if (1U == blink_enable)
+    {
+        ret = led_toggleblink(3U, 40U);
+
+        if (LED_OK == ret)
+        {
+            blink_enable = 0U;
+        }
+    }
+
+    osDelay(10);
   }
   /* USER CODE END led_task */
 }
@@ -152,11 +199,20 @@ void led_task(void *argument)
 void key_task(void *argument)
 {
   /* USER CODE BEGIN key_task */
+	key_function_t key_value = KEY_NOT_PRESSED;
+
   /* Infinite loop */
-  for(;;)
-  {
-    osDelay(1);
-  }
+	for(;;)
+	{
+		key_scan_short_long_press(&key_value,5,200);
+		if( KEY_NOT_PRESSED != key_value )
+		{
+			printf ("have a key value \r\n");
+			xQueueSend(key_valueHandle,&key_value,0);
+		}
+		
+		osDelay(10);
+	}
   /* USER CODE END key_task */
 }
 
