@@ -31,9 +31,12 @@
 
 /***********************************Include***********************************/
 #include "stm32f4xx_hal.h"
+#include "freertos.h"
 #include <stdio.h>
 #include <stdint.h>
 #include "gpio.h"
+#include "queue.h"
+#include "task.h"
 /***********************************Include***********************************/
 
 /***********************************Defines***********************************/
@@ -68,13 +71,30 @@ typedef enum
 } key_function_t;
 
 
+
+
+typedef enum
+{
+	RISING_EDGE   =    0,  /*上升沿*/
+	FALLING_EDGE	
+}trigger_type_t;
+
+
+
+typedef struct
+{
+	trigger_type_t trigger_type;
+	uint32_t tick;
+	
+} key_press_irq_status_t;	
+
+
 /***********************************Defines***********************************/
 
 /***********************************Declaring*********************************/
+extern QueueHandle_t g_key_queueHandle;
 
-key_status_t key_scan_short_long_press( key_function_t 	*key_value			, 
-                                        uint32_t 		short_press_time	,	 
-                                        uint32_t 		long_press_time		);
+void key_default_task(void *argument);
 
 /***********************************Declaring*********************************/
 

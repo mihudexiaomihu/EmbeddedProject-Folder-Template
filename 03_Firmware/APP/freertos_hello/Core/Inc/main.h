@@ -61,6 +61,7 @@ void Error_Handler(void);
 #define LED_GPIO_GPIO_Port GPIOC
 #define KEY_GPIO_Pin GPIO_PIN_12
 #define KEY_GPIO_GPIO_Port GPIOB
+#define KEY_GPIO_EXTI_IRQn EXTI15_10_IRQn
 
 /* USER CODE BEGIN Private defines */
 
