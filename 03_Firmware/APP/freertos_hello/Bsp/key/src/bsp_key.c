@@ -62,7 +62,7 @@ static QueueHandle_t s_key_irq_queue;
  * - This task does not handle queue full conditions robustly – it only prints an error
  *   if sending to `g_key_queueHandle` fails.
  */
-void key_default_task(void *argument)
+void key_task_func(void *argument)
 {
     key_function_t key_value;
     key_press_irq_status_t key_irq;
@@ -75,7 +75,6 @@ void key_default_task(void *argument)
 
     s_key_irq_queue = xQueueCreate(10U,sizeof(key_press_irq_status_t));
 
-    g_key_queueHandle = xQueueCreate(10U,sizeof(key_function_t));
 
     if ((s_key_irq_queue    ==  NULL) ||
         (g_key_queueHandle  ==  NULL))
@@ -95,8 +94,8 @@ void key_default_task(void *argument)
             continue;
         }
 
-        if ((FALLING_EDG    ==      key_irq.trigger_type) &&
-            (0              ==      first_trigger_mode))
+        if ((FALLING_EDGE   	==      key_irq.trigger_type) &&
+            (0              	==      first_trigger_mode)		)
         {
             first_trigger_tick  =   key_irq.tick;
             first_trigger_mode  =   1U;
@@ -104,11 +103,11 @@ void key_default_task(void *argument)
             printf( "Falling edge trigger time[%lu]\r\n",
                             (unsigned long)key_irq.tick);
         }
-        else if ((key_irq.trigger_type  ==  RISING_EDGE) &&
-                 (first_trigger_mode    ==  1U))
+        else if ((RISING_EDGE 	== key_irq.trigger_type) &&
+                 (1U 			== first_trigger_mode))
         {
-            first_trigger_mode = 0U;
-            press_time = key_irq.tick - first_trigger_tick;
+            first_trigger_mode 	= 0U;
+            press_time 			= key_irq.tick - first_trigger_tick;
 
             printf( "Rising edge trigger time[%lu]\r\n",
                                         (unsigned long)key_irq.tick);

@@ -26,13 +26,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "bsp_key.h"
-#include "bsp_led.h"
 #include "queue.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-
+#define LED_TIME_TICK 100U
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -63,19 +62,22 @@ const osThreadAttr_t key_task_attributes = {
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityLow,
 };
-/* Definitions for key_queue */
-//osMessageQueueId_t key_queueHandle;
-//const osMessageQueueAttr_t key_queue_attributes = {
-//  .name = "key_queue"
-//};
+/* Definitions for ledTimer */
+osTimerId_t ledTimerHandle;
+const osTimerAttr_t ledTimer_attributes = {
+  .name = "ledTimer"
+};
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
+static uint8_t time_led_blink_number = 0;
+static uint8_t time_led_run_number = 0;
 
 /* USER CODE END FunctionPrototypes */
 
 void led_default_task(void *argument);
 void key_default_task(void *argument);
+void ledCallback(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -97,13 +99,13 @@ void MX_FREERTOS_Init(void) {
   /* add semaphores, ... */
   /* USER CODE END RTOS_SEMAPHORES */
 
+  /* Create the timer(s) */
+  /* creation of ledTimer */
+  ledTimerHandle = osTimerNew(ledCallback, osTimerOnce, NULL, &ledTimer_attributes);
+
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
   /* USER CODE END RTOS_TIMERS */
-
-  /* Create the queue(s) */
-  /* creation of key_queue */
-//  key_queueHandle = osMessageQueueNew (16, sizeof(uint16_t), &key_queue_attributes);
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
@@ -127,137 +129,69 @@ void MX_FREERTOS_Init(void) {
 
 }
 
+/* USER CODE BEGIN Header_led_default_task */
 /**
- * @brief Default LED task that handles key events and controls LED behaviour.
- * @param argument Task entry parameter (not used in this task; pass NULL).
- * @return This task never returns (infinite loop).
- *
- * @details
- * This function runs as an independent FreeRTOS task. Its main operations:
- * 1. Delays 500 ms at start to allow other system modules to initialise.
- * 2. Repeatedly receives key messages from the queue `g_key_queueHandle`.
- *    - On `KEY_SHORT_PRESSED`: toggles the LED state (calls `led_toggle()`)
- *      only if blink mode is not active.
- *    - On `KEY_LONG_PRESSED`: enables blink mode (`blink_enable = 1`).
- * 3. While blink mode is active, it calls `led_toggleblink(3, 40)` to flash
- *    the LED 3 times with 40 ms intervals. When the blink completes
- *    (`LED_OK`), the blink mode is disabled (`blink_enable = 0`).
- * 4. At the end of each loop, delays 10 ms to reduce CPU usage.
- *
- * @note
- * The function contains several test blocks disabled by `#if 0`. They simulate
- * key interrupt events (rising/falling edges) and send test data to
- * `s_key_irq_queue`. These are kept for debugging reference and do not affect
- * normal operation.
- *
- * @warning
- * The global queue `g_key_queueHandle` must be created before this task runs.
- * Otherwise, the task will check every 10 ms until the queue becomes valid.
- */
-
- void led_default_task(void *argument)
+  * @brief  Function implementing the led_task thread.
+  * @param  argument: Not used
+  * @retval None
+  */
+/* USER CODE END Header_led_default_task */
+void led_default_task(void *argument)
 {
-
-	osDelay(500);
-#if 0	//test 01
-	if(NULL == s_key_irq_queue)
+  /* USER CODE BEGIN led_default_task */
+	key_function_t msg;
+	
+  /* Infinite loop */
+	for(;;)
 	{
-		printf("s_key_irq_queue create is fail\r\n");
+		if(pdTRUE == xQueueReceive(g_key_queueHandle,&msg,0))
+		{
+		if( KEY_SHORT_PRESSED == msg)
+		{
+			time_led_blink_number += 1;
+			osTimerStart(ledTimerHandle,LED_TIME_TICK);
+		}
+		if(KEY_LONG_PRESSED == msg)
+		{
+			time_led_blink_number += 10;
+			osTimerStart(ledTimerHandle,LED_TIME_TICK);
+		}
+		printf("led need blink number is [%d] \r\n",time_led_blink_number);
+		}
+	  
+	osDelay(100);
 	}
-	key_press_irq_status_t  key_irq;
-	key_irq.trigger_type = RISING_EDGE;
-	key_irq.tick = HAL_GetTick();
-	printf("RISING_EDGE time is [%d]",key_irq.tick);
-	xQueueSend(s_key_irq_queue,&key_irq,0);
-#endif
-	
-#if 0	//test 02	
-	if(NULL == s_key_irq_queue)
+  /* USER CODE END led_default_task */
+}
+
+/* USER CODE BEGIN Header_key_default_task */
+/**
+* @brief Function implementing the key_task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_key_default_task */
+void key_default_task(void *argument)
+{
+  /* USER CODE BEGIN key_default_task */
+  /* Infinite loop */
+  key_task_func( argument);
+  /* USER CODE END key_default_task */
+}
+
+/* ledCallback function */
+void ledCallback(void *argument)
+{
+  /* USER CODE BEGIN ledCallback */
+	printf("ledCallback\r\n");
+	HAL_GPIO_TogglePin(LED_GPIO_GPIO_Port,LED_GPIO_Pin);
+	time_led_run_number ++;
+	if(time_led_run_number < time_led_blink_number*2)
 	{
-		printf("s_key_irq_queue create is fail\r\n");
+		osTimerStart(ledTimerHandle,LED_TIME_TICK);
+		printf("Toggle number is [%d]\r\n",time_led_run_number);
 	}
-	key_press_irq_status_t  key_irq;
-	key_irq.trigger_type = FALLING_EDGE;
-	key_irq.tick = HAL_GetTick();
-	printf("FALLING_EDGE time is [%d]",key_irq.tick);
-	xQueueSend(s_key_irq_queue,&key_irq,0);
-	
-	osDelay(15);
-	
-	key_irq.trigger_type = RISING_EDGE;
-	key_irq.tick = HAL_GetTick();
-	printf("RISING_EDGE time is [%d]",key_irq.tick);
-	xQueueSend(s_key_irq_queue,&key_irq,0);
-	
-#endif	
-
-#if 0	//test 03	
-	if(NULL == s_key_irq_queue)
-	{
-		printf("s_key_irq_queue create is fail\r\n");
-	}
-	key_press_irq_status_t  key_irq;
-	key_irq.trigger_type = FALLING_EDGE;
-	key_irq.tick = HAL_GetTick();
-	printf("FALLING_EDGE time is [%d]",key_irq.tick);
-	xQueueSend(s_key_irq_queue,&key_irq,0);
-	
-	osDelay(550);
-	
-	key_irq.trigger_type = RISING_EDGE;
-	key_irq.tick = HAL_GetTick();
-	printf("RISING_EDGE time is [%d]",key_irq.tick);
-	xQueueSend(s_key_irq_queue,&key_irq,0);
-	
-#endif
-
-    key_function_t key_value;
-    led_status_t ret;
-    uint8_t blink_enable = 0U;
-
-    (void)argument;
-
-    for (;;)
-    {
-        if (g_key_queueHandle == NULL)
-        {
-            osDelay(10U);
-            continue;
-        }
-
-        if (xQueueReceive(
-                g_key_queueHandle,
-                &key_value,
-                0U) == pdTRUE)
-        {
-            if (key_value == KEY_SHORT_PRESSED)
-            {
-                printf("data is key short\r\n");
-
-                if (blink_enable == 0U)
-                {
-                    led_toggle();
-                }
-            }
-            else if (key_value == KEY_LONG_PRESSED)
-            {
-                printf("data is key long\r\n");
-                blink_enable = 1U;
-            }
-        }
-
-        if (blink_enable == 1U)
-        {
-            ret = led_toggleblink(3U, 40U);
-
-            if (ret == LED_OK)
-            {
-                blink_enable = 0U;
-            }
-        }
-
-        osDelay(10U);
-    }
+  /* USER CODE END ledCallback */
 }
 
 /* Private application code --------------------------------------------------*/

@@ -94,7 +94,7 @@ typedef struct
 /***********************************Declaring*********************************/
 extern QueueHandle_t g_key_queueHandle;
 
-void key_default_task(void *argument);
+void key_task_func(void *argument);
 
 /***********************************Declaring*********************************/
 

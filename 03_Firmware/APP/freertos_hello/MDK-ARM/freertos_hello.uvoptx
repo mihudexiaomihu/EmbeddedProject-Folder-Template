@@ -168,22 +168,6 @@
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>70</LineNumber>
-          <EnabledFlag>1</EnabledFlag>
-          <Address>134224090</Address>
-          <ByteObject>0</ByteObject>
-          <HtxType>0</HtxType>
-          <ManyObjects>0</ManyObjects>
-          <SizeOfObject>0</SizeOfObject>
-          <BreakByAccess>0</BreakByAccess>
-          <BreakIfRCount>1</BreakIfRCount>
-          <Filename>..\Bsp\key\src\bsp_key.c</Filename>
-          <ExecCommand></ExecCommand>
-          <Expression>\\freertos_hello\../Bsp/key/src/bsp_key.c\70</Expression>
-        </Bp>
-        <Bp>
-          <Number>2</Number>
-          <Type>0</Type>
           <LineNumber>1</LineNumber>
           <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>
@@ -198,7 +182,7 @@
           <Expression></Expression>
         </Bp>
         <Bp>
-          <Number>3</Number>
+          <Number>2</Number>
           <Type>0</Type>
           <LineNumber>140</LineNumber>
           <EnabledFlag>1</EnabledFlag>
