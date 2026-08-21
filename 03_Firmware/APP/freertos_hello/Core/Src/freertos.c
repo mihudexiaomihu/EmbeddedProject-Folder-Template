@@ -143,7 +143,8 @@ void led_default_task(void *argument)
 	
   /* Infinite loop */
 	for(;;)
-	{
+	{	
+		printf( "led_task_func\r\n");	
 		if(pdTRUE == xQueueReceive(g_key_queueHandle,&msg,0))
 		{
 		if( KEY_SHORT_PRESSED == msg)

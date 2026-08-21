@@ -22,6 +22,7 @@
 
 #include "bsp_key.h"
 
+
 #define JITTER_TIME		5
 #define SHORT_TIME		500
 #define KEY_CALLBACK	void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -71,9 +72,11 @@ void key_task_func(void *argument)
     uint32_t first_trigger_tick = 0U;
     uint32_t press_time;
 
+	key_press_irq_status_t* p_key_press_irq_status = NULL;
+	
     (void)argument;
 
-    s_key_irq_queue = xQueueCreate(10U,sizeof(key_press_irq_status_t));
+    s_key_irq_queue = xQueueCreate(10U,sizeof(key_press_irq_status_t*));
 
 
     if ((s_key_irq_queue    ==  NULL) ||
@@ -84,79 +87,87 @@ void key_task_func(void *argument)
         return;
     }
 
+
+//    if (p_key_press_irq_status == NULL)
+//	{
+//			return ;
+//	}
     for (;;)
     {
 
-        if (pdTRUE != xQueueReceive(    s_key_irq_queue,
-                                        &key_irq,
-                                        portMAX_DELAY))
+		printf( "task_task_func\r\n");
+		
+        if (pdTRUE == xQueueReceive(    s_key_irq_queue			,
+                                        &p_key_press_irq_status	,
+                                        100			))
         {
-            continue;
-        }
-
-        if ((FALLING_EDGE   	==      key_irq.trigger_type) &&
-            (0              	==      first_trigger_mode)		)
-        {
-            first_trigger_tick  =   key_irq.tick;
-            first_trigger_mode  =   1U;
-
-            printf( "Falling edge trigger time[%lu]\r\n",
-                            (unsigned long)key_irq.tick);
-        }
-        else if ((RISING_EDGE 	== key_irq.trigger_type) &&
-                 (1U 			== first_trigger_mode))
-        {
-            first_trigger_mode 	= 0U;
-            press_time 			= key_irq.tick - first_trigger_tick;
-
-            printf( "Rising edge trigger time[%lu]\r\n",
-                                        (unsigned long)key_irq.tick);
-
-            if (press_time < JITTER_TIME)
+            key_irq.trigger_type = p_key_press_irq_status->trigger_type;
+            key_irq.tick = p_key_press_irq_status->tick;		
+            
+            if ((FALLING_EDGE   	==      key_irq.trigger_type) &&
+                (0              	==      first_trigger_mode)		)
             {
+                first_trigger_tick  =   key_irq.tick;
+                first_trigger_mode  =   1U;
 
-                printf("It is key jitter[%lu ms]\r\n",
-                                        (unsigned long)press_time);
+                printf( "Falling edge trigger time[%lu]\r\n",
+                                            (unsigned long)key_irq.tick);
             }
-            else if (press_time < SHORT_TIME)
+            else if ((RISING_EDGE 	== key_irq.trigger_type) &&
+                    (1U 			== first_trigger_mode))
             {
-                key_value = KEY_SHORT_PRESSED;
+                first_trigger_mode 	= 0U;
+                press_time 			= key_irq.tick - first_trigger_tick;
 
-                printf("It is key short[%lu ms]\r\n",
-                                    (unsigned long)press_time
-                );
+                printf( "Rising edge trigger time[%lu]\r\n",
+                                            (unsigned long)key_irq.tick);
 
-                if ( pdTRUE != xQueueSend(  g_key_queueHandle,
-                                            &key_value,
-                                            0U))
+                if (press_time < JITTER_TIME)
                 {
-                    printf("Key event queue is full\r\n");
+
+                    printf("It is key jitter[%lu ms]\r\n",
+                                            (unsigned long)press_time);
+                }
+                else if (press_time < SHORT_TIME)
+                {
+                    key_value = KEY_SHORT_PRESSED;
+
+                    printf("It is key short[%lu ms]\r\n",
+                                        (unsigned long)press_time
+                    );
+
+                    if ( pdTRUE != xQueueSend(  g_key_queueHandle,
+                                                &key_value,
+                                                0U))
+                    {
+                        printf("Key event queue is full\r\n");
+                    }
+                }
+                else
+                {
+
+                    key_value = KEY_LONG_PRESSED;
+
+                    printf("It is key long[%lu ms]\r\n",
+                                        (unsigned long)press_time
+                    );
+
+                    if (pdTRUE != xQueueSend( g_key_queueHandle,
+                                                &key_value,
+                                                0U))
+                    {
+                        printf("Key event queue is full\r\n");
+                    }
                 }
             }
             else
             {
-
-                key_value = KEY_LONG_PRESSED;
-
-                printf("It is key long[%lu ms]\r\n",
-                                    (unsigned long)press_time
+                printf(
+                    "Unexpected edge: type=%d, state=%u\r\n",
+                    key_irq.trigger_type,
+                    first_trigger_mode
                 );
-
-                if (pdTRUE != xQueueSend( g_key_queueHandle,
-                                            &key_value,
-                                            0U))
-                {
-                    printf("Key event queue is full\r\n");
-                }
             }
-        }
-        else
-        {
-            printf(
-                "Unexpected edge: type=%d, state=%u\r\n",
-                key_irq.trigger_type,
-                first_trigger_mode
-            );
         }
     }
 }
@@ -197,27 +208,36 @@ void key_task_func(void *argument)
 
 KEY_CALLBACK
 {
+	 HAL_GPIO_WritePin(IRQ_GPIO_GPIO_Port, IRQ_GPIO_Pin, GPIO_PIN_SET);
 	static trigger_type_t trigger_type = FALLING_EDGE;
 
+    static key_press_irq_status_t  key_irq_1={
+                                        .trigger_type	=	FALLING_EDGE,
+                                        .tick			=	0			};
+    static key_press_irq_status_t  key_irq_2={
+                                        .trigger_type	=	RISING_EDGE,
+                                        .tick			=	0			};		
+	key_press_irq_status_t* p_key_press_irq_status_1 = &key_irq_1;
+	key_press_irq_status_t* p_key_press_irq_status_2 = &key_irq_2;                               
+
+	printf( "Callback\r\n");					
+										
 	if(FALLING_EDGE == trigger_type)
 	{
 		trigger_type = RISING_EDGE;
-
-		key_press_irq_status_t  key_irq={
-                                        .trigger_type	=	FALLING_EDGE,
-                                        .tick			=	HAL_GetTick()	
-		};
-
+		
 		if(NULL == s_key_irq_queue)
 		{
 			printf("Queue is not created\r\n");
 		}
+		
 
+		key_irq_1.tick = HAL_GetTick();
 		if(pdTRUE == xQueueSendFromISR(	s_key_irq_queue	,
-										&key_irq,NULL	))
+										&p_key_press_irq_status_1,NULL	))
 		{
 			printf("Key interrupt send FALLING_EDGE success[%d]\r\n", 
-                                                                key_irq.tick);
+                                                                key_irq_1.tick);
 		}
 
 		GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -232,21 +252,17 @@ KEY_CALLBACK
 	{
 		trigger_type = FALLING_EDGE;
 
-		key_press_irq_status_t  key_irq={
-                                        .trigger_type	=	RISING_EDGE,
-                                        .tick			=	HAL_GetTick()	
-		};
-
 		if(NULL == s_key_irq_queue)
 		{
 			printf("Queue is not created\r\n");
 		}
 
+        key_irq_2.tick = HAL_GetTick();
 		if(pdTRUE == xQueueSendFromISR(	s_key_irq_queue	,
-										&key_irq,NULL	))
+										&p_key_press_irq_status_2,NULL	))
 		{
 			printf("Key interrupt send RISING_EDGE success[%d]\r\n",
-                                                                 key_irq.tick);
+                                                                 key_irq_2.tick);
 		}
 
 		GPIO_InitTypeDef GPIO_InitStruct = {0};
@@ -257,6 +273,8 @@ KEY_CALLBACK
 
 		HAL_GPIO_Init(KEY_GPIO_GPIO_Port, &GPIO_InitStruct);
 	}
+	 
+	HAL_GPIO_WritePin(IRQ_GPIO_GPIO_Port, IRQ_GPIO_Pin, GPIO_PIN_RESET);
 }
 
 

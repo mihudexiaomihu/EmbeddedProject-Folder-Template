@@ -1,2 +1,21 @@
-# 忽略
+# Keil output directories
+Objects/
+Listings/
 
+# Keil build outputs
+*.o
+*.d
+*.crf
+*.dep
+*.lnp
+*.map
+*.axf
+*.hex
+*.bin
+*.htm
+*.lst
+*.iex
+*.scvd
+
+# Keil user settings
+*.uvguix.*
