@@ -29,12 +29,15 @@
 #include "stdlib.h"
 #include "elog.h"
 #include "queue.h"
+#include "semphr.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 uint32_t *buffer1 = NULL;
 uint32_t *buffer2 = NULL;
+
+SemaphoreHandle_t g_buffer_mutex = NULL;
 
 QueueHandle_t  queue;
 QueueHandle_t  convert_voltage_queue;
@@ -102,6 +105,13 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+
+  g_buffer_mutex = xSemaphoreCreateMutex();
+
+  if(NULL == g_buffer_mutex )
+  {
+    log_i("Failed to create mutex");
+  }
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
@@ -113,6 +123,10 @@ void MX_FREERTOS_Init(void) {
   queue						= 		xQueueCreate(1,sizeof(uint32_t));
   convert_voltage_queue 	= 		xQueueCreate(1,sizeof(uint32_t));	
 	
+  if(NULL == queue || NULL == convert_voltage_queue)
+  {
+  	log_i(" queue create is failed");
+  }
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -143,32 +157,19 @@ void StartDefaultTask(void *argument)
   /* USER CODE BEGIN StartDefaultTask */
   app_elog_init();
 
-buffer1 = malloc(ADC_BUFFER_SIZE * sizeof(uint32_t));
-buffer2 = malloc(ADC_BUFFER_SIZE * sizeof(uint32_t));
+  buffer1 = malloc(ADC_BUFFER_SIZE * sizeof(uint32_t));
+  buffer2 = malloc(ADC_BUFFER_SIZE * sizeof(uint32_t));
 
   if(NULL == buffer1 || NULL == buffer2)
   {
     log_e("Failed to allocate buffer1 or buffer2");
 	  return ;
   }
- else 
-  {
-    log_i("buffer malloc suucess");
-  }
   
   memset((void*)buffer1,(int)0xFF,(unsigned int)ADC_BUFFER_SIZE*sizeof(uint32_t));
   memset((void*)buffer2,(int)0xFF,(unsigned int)ADC_BUFFER_SIZE*sizeof(uint32_t));
   
   // Create a queue to hold data
-
-
-  
-  if(NULL == queue || NULL == convert_voltage_queue)
-  {
-	log_i(" queue create is failed");
-  }
-
-  
   HAL_StatusTypeDef ret;
   ret = HAL_ADC_Start_DMA(&hadc1,buffer1,ADC_BUFFER_SIZE);
 	if(HAL_OK != ret)
@@ -179,51 +180,54 @@ buffer2 = malloc(ADC_BUFFER_SIZE * sizeof(uint32_t));
 	BaseType_t result;
 	uint32_t queue_data;
 	uint8_t buffer_select_flag = 0;
+
   /* Infinite loop */
   for(;;)
   {
-  result = xQueueReceive(queue, &queue_data, portMAX_DELAY);
-  if (result == pdPASS)
-  {
-    log_i("Data received from the queue");
-  } 
-  
-  if(queue_data == 0xA5A5A5A5)
-  {
-	log_i("ADC conversion is completed. DMA transfer is also completed. ");
-	log_i("ADC data is [%d]",buffer1[0]);
-	  if( 0 == buffer_select_flag)
-	  {
-		buffer_select_flag = 1;
-		ret = HAL_ADC_Start_DMA(&hadc1,buffer2,ADC_BUFFER_SIZE);
-		if (result == pdPASS)
-		{
-		  log_i("Data received from the queue: [%d]", buffer1[0]);
-			result = xQueueSend(convert_voltage_queue,buffer1,0);
-			if( pdPASS == result)
-			{
-				log_i("The data has been sent to Task Two.");
-			}
-		}
-	  }
-	  else
-	  {
-		buffer_select_flag = 0;
-		ret = HAL_ADC_Start_DMA(&hadc1,buffer1,ADC_BUFFER_SIZE);
-		if (result == pdPASS)
-		{
-			log_i("Data received from the queue: [%d]", buffer2[0]);
-			result = xQueueSend(convert_voltage_queue,buffer1,0);
-			if( pdPASS == result)
-			{
-				log_i("The data has been sent to Task Two.");
-			}
-		}
-	  }
-  }
-	
-    osDelay(10);
-
+    result = xQueueReceive(queue, &queue_data, portMAX_DELAY);
+    if (result == pdPASS)
+    {
+      log_i("Data received from the queue");
+    } 
+    
+    if(queue_data == 0xA5A5A5A5)
+    {
+      if( 0 == buffer_select_flag)
+      {
+        if(pdPASS == xSemaphoreTake(g_buffer_mutex, portMAX_DELAY))//获取互斥锁
+        {
+              buffer_select_flag = 1;
+              ret = HAL_ADC_Start_DMA(&hadc1,buffer2,ADC_BUFFER_SIZE);
+              if (result == pdPASS)
+              {
+                result = xQueueSend(convert_voltage_queue,buffer1,0);
+                if( pdPASS == result)
+                {
+                  log_i("The data has been sent to Task Two.");
+                }
+              }
+          xSemaphoreGive(g_buffer_mutex); //执行完成后释放互斥锁
+        }
+      }
+      else
+      {
+        if(pdPASS == xSemaphoreTake(g_buffer_mutex, portMAX_DELAY))//获取互斥锁
+        {
+            buffer_select_flag = 0;
+            ret = HAL_ADC_Start_DMA(&hadc1,buffer1,ADC_BUFFER_SIZE);
+            if (result == pdPASS)
+            {
+                  result = xQueueSend(convert_voltage_queue,buffer1,0);
+                  if( pdPASS == result)
+                  {
+                    log_i("The data has been sent to Task Two.");
+                  }
+            }
+        xSemaphoreGive(g_buffer_mutex); //执行完成后释放互斥锁
+        }
+	    } 
+    }
+    osDelay(100);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -284,27 +288,27 @@ void convert_voltage_Task(void *argument)
 	BaseType_t result;
 	uint32_t receive_data = 0;
 	float voltage = 0;
-	if(NULL == convert_voltage_queue)
-	{
-		log_i("task 2 receive data is [%d]",receive_data);
-		return ;
-	}
+
 	for(;;)
 	{
-		result = xQueueReceive(convert_voltage_queue,&receive_data,portMAX_DELAY);
-		if (result == pdPASS) 
-		{
-			log_i("task 2 receive data is [%d]",receive_data);
-		}
-		voltage = (float)receive_data / 4095.0f * 3.3f;;
-		log_i("voltage is [%f]",voltage);
-		osDelay(10);
-	}
+      result = xQueueReceive(convert_voltage_queue,&receive_data,portMAX_DELAY);
+      
+      if (pdPASS == result) 
+      {
+        log_i("task 2 receive data is [%d]",receive_data);
+        if(pdPASS == xSemaphoreTake(g_buffer_mutex, portMAX_DELAY))
+          {
+            log_i("Task Two has acquired the mutex.");
+            
+            voltage = (float)receive_data / 4095.0f * 3.3f;;
+            log_i("voltage is [%f]",voltage);
+            
+            xSemaphoreGive(g_buffer_mutex); //执行完成后释放互斥锁
+          }
+      }
+    osDelay(100);
+  }
 }
-
-
-
-
 
 /* USER CODE END Application */
 
