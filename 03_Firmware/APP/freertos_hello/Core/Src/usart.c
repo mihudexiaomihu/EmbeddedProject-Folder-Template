@@ -122,6 +122,4 @@ PUTCHAR_PROTOTYPR
 	return ch;
 }
 	
-	
-	
 /* USER CODE END 1 */

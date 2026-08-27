@@ -1,0 +1,104 @@
+{
+    "Session": "default",
+    "Sessions": {
+        "default": {
+            "SessionData": {
+                "1_1920x1080": {
+                    "DockWidgets": {
+                        "FloatingWidgetOrder": [
+                        ],
+                        "OpenWindows": {
+                            "00ProjectOverviewWidget": {
+                                "height": 361,
+                                "width": 250
+                            },
+                            "01SuggestionsBrowser": {
+                                "height": 759,
+                                "width": 250
+                            },
+                            "02EntityFilter": {
+                                "height": 464,
+                                "width": 250
+                            },
+                            "03InfoBrowserWidget_0": {
+                                "height": 372,
+                                "width": 270
+                            }
+                        },
+                        "TabGroupFrontWidgets": [
+                            "ProjectOverviewWidget"
+                        ]
+                    },
+                    "EntityFilter": {
+                        "Dock Area": 1,
+                        "Dock In Drawer Mode": false,
+                        "Dock Is Floating": false,
+                        "Dock Tab Group": [
+                            "ProjectOverviewWidget"
+                        ]
+                    },
+                    "InfoBrowserWidget_0": {
+                        "Dock Area": 1,
+                        "Dock In Drawer Mode": false,
+                        "Dock Is Floating": false,
+                        "Dock Tab Group": [
+                        ]
+                    },
+                    "ProjectOverviewWidget": {
+                        "Dock Area": 1,
+                        "Dock In Drawer Mode": false,
+                        "Dock Is Floating": false,
+                        "Dock Tab Group": [
+                            "EntityFilter"
+                        ]
+                    },
+                    "SuggestionsBrowser": {
+                        "Dock Area": 2,
+                        "Dock In Drawer Mode": false,
+                        "Dock Is Floating": false,
+                        "Dock Tab Group": [
+                        ]
+                    }
+                },
+                "EditorWindowList": [
+                    "./Core/Src/main.c"
+                ],
+                "EditorWindowSetting": {
+                    "44aadf18b8b883b64908604f28bb3d72": {
+                        "anchor": {
+                            "line": 0,
+                            "offset": 0
+                        },
+                        "caret": {
+                            "line": 0,
+                            "offset": 0
+                        },
+                        "container": 1,
+                        "height": 758,
+                        "hscroll": 0,
+                        "isMaximized": false,
+                        "vscroll": 63,
+                        "width": 509,
+                        "x": 0,
+                        "y": 0
+                    }
+                },
+                "EntityFilter": {
+                    "LastEntityFilterUsed": "All Entities"
+                },
+                "LastAccessedPid": "22320",
+                "MiscSaveStates": {
+                    "projectOverviewCharts": "true",
+                    "projectOverviewChartsSelected": "true"
+                },
+                "SplitWorkspace1SelectedTab": "./Core/Src/main.c",
+                "SplitWorkspace1Tabs": [
+                    "./Core/Src/main.c"
+                ],
+                "projectconfigure": {
+                    "last config panel": "C++"
+                }
+            }
+        }
+    }
+}
