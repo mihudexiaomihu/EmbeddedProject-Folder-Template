@@ -1,13 +1,5 @@
 #include "bsp_uart_driver.h"
 
-#include "usart.h"
-
-#include "FreeRTOS.h"
-// #include "task.h"
-#include "queue.h"
-#include "elog.h"
-
-#include "mid_circular_buffer.h"
 
 #define BUFFER_A    0
 #define BUFFER_B    1
@@ -70,14 +62,17 @@ void bsp_uart_driver_func(void *argument)
 	for(;;)
 	{
         //Front-end receives email notifications
-        if( pdPASS == xQueueReceive(    queue_uart_irq_threaf   , 
-                                        &received_data          ,
+        if( pdPASS == xQueueReceive(    queue_uart_irq_threaf   ,\ 
+                                        &received_data          ,\
                                         portMAX_DELAY           ))
 		{
 		    log_i("Received data: [%x]", (unsigned long)received_data);
             
             //Front-end sends email notification to the back-end.
-            if(pdPASS == xQueueSend(queue_irq_rec_A,front_to_end,0))
+            if(pdPASS == xQueueGenericSend( queue_irq_rec_A ,\
+                                            &front_to_end   ,\
+                                            0               ,\
+                                            queueOVERWRITE  ))
             {
                 log_i("Front-end sends email notification to the back-end.");
 
@@ -167,9 +162,10 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     uint32_t send_to_thread = IRQ_SEND_TO_THREAD;
 
-    ret_1 = xQueueSendFromISR(queue_uart_irq_threaf, 
-                            &send_to_thread, 
-                            &xHigherPriorityTaskWoken); 
+    ret_1 = xQueueGenericSendFromISR(   queue_uart_irq_threaf       ,\
+                                        &send_to_thread             ,\
+                                        &xHigherPriorityTaskWoken   ,\
+                                        queueOVERWRITE              ); 
 
     if (ret_1 != pdPASS)
     {
@@ -189,3 +185,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 #endif
 
 }
+
+
+mid_circular_buffer_t * get_circular_buffer(void)
+{
+    if (NULL == g_circular_buffer_irq)
+    {
+        return NULL;
+    }
+    
+    return g_circular_buffer_irq;
+}
+

@@ -1,0 +1,11 @@
+{
+    
+    // 1. 指定字体，如果有多个字体名称，用逗号隔开，作为后备方案
+    "editor.fontFamily": "Fira Code, 'Courier New', monospace",
+    // 2. 开启连字功能，这是让 Fira Code 发挥其特色（如 != 显示为 ≠）的关键
+    "editor.fontLigatures": true,
+    // (可选) 终端也使用 Fira Code 保持风格统一
+    "terminal.integrated.fontFamily": "Fira Code, 'Courier New', monospace",
+    "terminal.integrated.fontLigatures.enabled": true
+
+}
