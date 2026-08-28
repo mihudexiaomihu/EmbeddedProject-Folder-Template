@@ -48,14 +48,14 @@
             <NotGenerated>0</NotGenerated>
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
-          <OutputDirectory>freertos_hello\</OutputDirectory>
+          <OutputDirectory>.\Objects\</OutputDirectory>
           <OutputName>freertos_hello</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
           <DebugInformation>1</DebugInformation>
-          <BrowseInformation>1</BrowseInformation>
-          <ListingPath></ListingPath>
+          <BrowseInformation>0</BrowseInformation>
+          <ListingPath>.\freertos_hello\</ListingPath>
           <HexFormatSelection>1</HexFormatSelection>
           <Merge32K>0</Merge32K>
           <CreateBatchFile>0</CreateBatchFile>
@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define>USE_HAL_DRIVER,STM32F411xE</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;..\Bsp\led\driver\inc;..\Middlewares\easylogger\inc;..\Middlewares\RTT\inc</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Middlewares/Third_Party/FreeRTOS/Source/include;../Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS_V2;../Middlewares/Third_Party/FreeRTOS/Source/portable/RVDS/ARM_CM4F;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Bsp/led/driver/inc;../Middlewares/easylogger/inc;../Middlewares/RTT/inc;..\Middlewares\MID_circular_buffer;../Bsp/myelog/inc;..\Bsp\uart;..\APP\UART_Parse</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -632,12 +632,37 @@
           </Files>
         </Group>
         <Group>
+          <GroupName>Middlewares</GroupName>
+          <Files>
+            <File>
+              <FileName>mid_circular_buffer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Middlewares\MID_circular_buffer\mid_circular_buffer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>APP</GroupName>
+          <Files>
+            <File>
+              <FileName>uart_parse_task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\APP\UART_Parse\uart_parse_task.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
           <GroupName>Bsp</GroupName>
           <Files>
             <File>
-              <FileName>bsp_led_driver.c</FileName>
+              <FileName>bsp_elog.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\Bsp\led\driver\src\bsp_led_driver.c</FilePath>
+              <FilePath>..\Bsp\myelog\src\bsp_elog.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_uart_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Bsp\uart\bsp_uart_driver.c</FilePath>
             </File>
           </Files>
         </Group>

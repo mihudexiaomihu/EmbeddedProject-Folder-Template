@@ -1,0 +1,12 @@
+.\freertos_hello\elog_port.o: ..\Middlewares\easylogger\port\elog_port.c
+.\freertos_hello\elog_port.o: ../Middlewares/easylogger/inc/elog.h
+.\freertos_hello\elog_port.o: ../Middlewares/easylogger/inc/elog_cfg.h
+.\freertos_hello\elog_port.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdint.h
+.\freertos_hello\elog_port.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stddef.h
+.\freertos_hello\elog_port.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdbool.h
+.\freertos_hello\elog_port.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdio.h
+.\freertos_hello\elog_port.o: ../Middlewares/RTT/inc/SEGGER_RTT.h
+.\freertos_hello\elog_port.o: ../Middlewares/RTT/inc/SEGGER_RTT_ConfDefaults.h
+.\freertos_hello\elog_port.o: ../Middlewares/RTT/inc/SEGGER_RTT_Conf.h
+.\freertos_hello\elog_port.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdlib.h
+.\freertos_hello\elog_port.o: D:\Keil_MDK\ARM\ARMCC\Bin\..\include\stdarg.h

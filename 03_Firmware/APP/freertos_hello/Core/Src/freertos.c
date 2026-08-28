@@ -25,38 +25,20 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include  "elog.h"
+#include "bsp_elog.h"
+#include "uart_parse_task.h"
 #include <stdio.h>	
+#include "bsp_uart_driver.h"
+
+
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
-void app_elog_init(void)
-{
-	elog_init();
-//	elog_set_text_color_enable(true);
-	
-	elog_set_fmt(ELOG_LVL_ASSERT	,	ELOG_FMT_ALL);
-	elog_set_fmt(ELOG_LVL_ERROR		,	ELOG_FMT_LVL|ELOG_FMT_TAG);
-	elog_set_fmt(ELOG_LVL_WARN		,	ELOG_FMT_LVL|ELOG_FMT_TAG);
-	elog_set_fmt(ELOG_LVL_INFO		,	ELOG_FMT_LVL|ELOG_FMT_TAG);
-	elog_set_fmt(ELOG_LVL_DEBUG		,	ELOG_FMT_ALL & ~(	ELOG_FMT_TIME	|
-															ELOG_FMT_P_INFO	|
-															ELOG_FMT_T_INFO	));
-	elog_set_fmt(ELOG_LVL_VERBOSE	,	ELOG_FMT_ALL);
-	
-	elog_start();
-}
 
-void test_elog(void)
-{
-	log_a("this assert");
-	log_e("this is error");
-	log_w("this is warning");
-	log_i("this is info");
-	log_d("this is debug");
-	log_v("this is verbose");
-}
+
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
@@ -73,22 +55,38 @@ void test_elog(void)
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
-/* Definitions for defaultTask */
-osThreadId_t defaultTaskHandle;
-const osThreadAttr_t defaultTask_attributes = {
-  .name = "defaultTask",
+/* Definitions for thread_a_Task */
+osThreadId_t thread_a_TaskHandle;
+const osThreadAttr_t thread_a_Task_attributes = {
+  .name = "thread_a_Task",
   .stack_size = 128 * 4,
   .priority = (osPriority_t) osPriorityNormal,
+};
+/* Definitions for thread_b_task */
+osThreadId_t thread_b_taskHandle;
+const osThreadAttr_t thread_b_task_attributes = {
+  .name = "thread_b_task",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityLow,
 };
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 
+/* Definitions for thread_b_task */
 
+osThreadId_t bsp_uart_driver_taskHandle;
+const osThreadAttr_t task_bsp_uart_driver_attributes = {
+  .name = "task_bsp_uart_driver",
+  .stack_size = 128 * 4,
+  .priority = (osPriority_t) osPriorityNormal,
+};
 
 /* USER CODE END FunctionPrototypes */
 
-void StartDefaultTask(void *argument);
+void Serial_port_transfer_task(void *argument);
+void Serial_port_payload_task(void *argument);
+void bsp_uart_driver_func(void *argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -99,7 +97,7 @@ void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
   */
 void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN Init */
-
+bsp_elog_init();
   /* USER CODE END Init */
 
   /* USER CODE BEGIN RTOS_MUTEX */
@@ -119,11 +117,23 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of defaultTask */
-  defaultTaskHandle = osThreadNew(StartDefaultTask, NULL, &defaultTask_attributes);
+  /* creation of thread_a_Task */
+  thread_a_TaskHandle       =     osThreadNew(Serial_port_transfer_task,
+                                    NULL, 
+                                    &thread_a_Task_attributes);
+
+  /* creation of thread_b_task */
+  thread_b_taskHandle       =     osThreadNew(Serial_port_payload_task, 
+                                    NULL, 
+                                    &thread_b_task_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
+  /* creation of bsp_uart_driver_taskHandle */
+  bsp_uart_driver_taskHandle =    osThreadNew(bsp_uart_driver_func, 
+                                           NULL, 
+                                           &task_bsp_uart_driver_attributes);
+
   /* USER CODE END RTOS_THREADS */
 
   /* USER CODE BEGIN RTOS_EVENTS */
@@ -132,28 +142,43 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_StartDefaultTask */
+/* USER CODE BEGIN Header_Serial_port_transfer_task */
 /**
-  * @brief  Function implementing the defaultTask thread.
+  * @brief  Function implementing the thread_a_Task thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_StartDefaultTask */
-void StartDefaultTask(void *argument)
-{
-  /* USER CODE BEGIN StartDefaultTask */
-  app_elog_init();
-  test_elog();	
-  /* Infinite loop */
-  for(;;)
-  {
-	log_i("[%lu] Hello world",(unsigned long)HAL_GetTick());
+/* USER CODE END Header_Serial_port_transfer_task */
 
-    osDelay(1000);
+// void Serial_port_transfer_task(void *argument)
+// {
+//   /* USER CODE BEGIN Serial_port_transfer_task */
+//   /* Infinite loop */
+//   for(;;)
+//   {
+//     osDelay(1);
+//   }
+//   /* USER CODE END Serial_port_transfer_task */
+// }
 
-  }
-  /* USER CODE END StartDefaultTask */
-}
+/* USER CODE BEGIN Header_Serial_port_payload_task */
+/**
+* @brief Function implementing the thread_b_task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_Serial_port_payload_task */
+
+// void Serial_port_payload_task(void *argument)
+// {
+//   /* USER CODE BEGIN Serial_port_payload_task */
+//   /* Infinite loop */
+//   for(;;)
+//   {
+//     osDelay(1);
+//   }
+//   /* USER CODE END Serial_port_payload_task */
+// }
 
 /* Private application code --------------------------------------------------*/
 /* USER CODE BEGIN Application */
